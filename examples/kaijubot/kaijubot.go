@@ -28,9 +28,6 @@ func main() {
 		fail("Error creating API: %s", err.Error())
 	}
 
-	tweet := GetTweet("tokugifs")
-	fmt.Println(tweet)
-
 	sub := kbc.ListenForNewTextMessages()
 	for {
 		msg, err := sub.Read()
