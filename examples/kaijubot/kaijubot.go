@@ -3,9 +3,8 @@ package main
 import (
 	"flag"
 	"fmt"
-	"io/ioutil"
+
 	"os"
-	"strings"
 
 	"github.com/keybase/go-keybase-chat-bot/kbchat"
 )
@@ -20,8 +19,7 @@ func main() {
 	var kbc *kbchat.API
 	var err error
 
-	apiKey := ReadApiKey("apikey.txt")
-	fmt.print(apiKey)
+	//apiKey := ReadSecret("config/apikey.txt"
 
 	flag.StringVar(&kbLoc, "keybase", "keybase", "the location of the Keybase app")
 	flag.Parse()
@@ -29,6 +27,9 @@ func main() {
 	if kbc, err = kbchat.Start(kbLoc); err != nil {
 		fail("Error creating API: %s", err.Error())
 	}
+
+	tweet := GetTweet("tokugifs")
+	fmt.Println(tweet)
 
 	sub := kbc.ListenForNewTextMessages()
 	for {
@@ -43,20 +44,3 @@ func main() {
 	}
 
 }
-
-func ReadApiKey(filename) string {
-     text, err := ioutil.ReadFile(filename)
-     if err != nil {
-     fmt.Print(err)
-     }
-     key := strings.TrimSpace(text)
-     return key
-}
-
-
-const twitter = "https://twitter.con/"
-
-func GetTweet(username string, apikey) string {
-     return ""
-}
-
