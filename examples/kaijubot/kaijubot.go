@@ -3,8 +3,9 @@ package main
 import (
 	"flag"
 	"fmt"
-
+	"math/rand"
 	"os"
+	"time"
 
 	"github.com/keybase/go-keybase-chat-bot/kbchat"
 )
@@ -19,7 +20,7 @@ func main() {
 	var kbc *kbchat.API
 	var err error
 
-	//apiKey := ReadSecret("config/apikey.txt"
+	rand.Seed(time.Now().Unix())
 
 	flag.StringVar(&kbLoc, "keybase", "keybase", "the location of the Keybase app")
 	flag.Parse()
@@ -35,7 +36,9 @@ func main() {
 			fail("failed to read message: %s", err.Error())
 		}
 
-		if err = kbc.SendMessage(msg.Conversation.Id, msg.Message.Content.Text.Body); err != nil {
+		link := GetTokugifsLink()
+		err = kbc.SendMessage(msg.Conversation.Id, link)
+		if err != nil {
 			fail("error echo'ing message: %s", err.Error())
 		}
 	}

@@ -10,11 +10,11 @@ import (
 	"github.com/dghubble/oauth1"
 )
 
-func main() {
-
+// Be sure to call rand.Seed beforehand
+func GetTokugifsLink() string {
 	client := BuildClient()
 	tweet := GetRandomTweet(client, "tokugifs")
-	fmt.Println(tweet.ID)
+	return ExtractVideo(tweet)
 
 }
 
@@ -46,7 +46,7 @@ func ReadRecentTweets(client *twitter.Client, username string) []twitter.Tweet {
 	params := twitter.UserTimelineParams{
 		ScreenName:     username,
 		ExcludeReplies: &excludeReplies,
-		Count:          30,
+		Count:          50,
 	}
 	tweets, _, err := client.Timelines.UserTimeline(&params)
 	if err != nil {
@@ -57,8 +57,18 @@ func ReadRecentTweets(client *twitter.Client, username string) []twitter.Tweet {
 	return tweets
 }
 
-func GetRandomTweet(client *twitter.Client, username string) twitter.Tweet {
+func GetRandomTweet(client *twitter.Client, username string) *twitter.Tweet {
 	tweets := ReadRecentTweets(client, username)
 	lucky := rand.Intn(len(tweets))
-	return tweets[lucky]
+	return &tweets[lucky]
+}
+
+func ExtractVideo(tweet *twitter.Tweet) string {
+	for _, ent := range tweet.ExtendedEntities.Media {
+		for _, v := range ent.VideoInfo.Variants {
+			// just return the first one ofr now
+			return v.URL
+		}
+	}
+	return ""
 }
