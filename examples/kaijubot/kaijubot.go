@@ -32,15 +32,16 @@ func main() {
 	sub := kbc.ListenForNewTextMessages()
 	for {
 		msg, err := sub.Read()
+
 		if err != nil {
 			fail("failed to read message: %s", err.Error())
 		}
 
 		link := GetTokugifsLink()
-		err = kbc.SendMessage(msg.Conversation.Id, link)
-		if err != nil {
+		
+		if err = kbc.SendMessage(msg.Conversation.Id, link); err != nil {
 			fail("error echo'ing message: %s", err.Error())
 		}
-	}
 
+	}
 }
