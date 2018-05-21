@@ -6,25 +6,27 @@ import (
 	"math/rand"
 	"os"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/dghubble/go-twitter/twitter"
 	"github.com/keybase/go-keybase-chat-bot/kbchat"
 )
 
-func fail(msg string, args ...interface{}) {
-	fmt.Fprintf(os.Stderr, msg+"\n", args...)
-	os.Exit(3)
+type Chatbot struct {
+     Mux sync.Mutex
+     Location string
+     Kbc *kbchat.API
+     Client *twitter.Client
 }
 
-func main() {
-	var kbLoc string
-	var kbc *kbchat.API
-	var err error
-
+// make him a real boy
+func InitChatbot() *Chatbot {
 	rand.Seed(time.Now().Unix())
-	client := BuildClient()
 
+	var err error
+	var kbc *kbchat.API
+	var kbLoc string
 	flag.StringVar(&kbLoc, "keybase", "keybase", "the location of the Keybase app")
 	flag.Parse()
 
@@ -32,22 +34,45 @@ func main() {
 		fail("Error creating API: %s", err.Error())
 	}
 
-	sub := kbc.ListenForNewTextMessages()
+	return &Chatbot{
+	       Location: kbLoc,
+	       Kbc: kbc,
+	       Client: BuildClient(),
+	}
+}
+
+func fail(msg string, args ...interface{}) {
+	fmt.Fprintf(os.Stderr, msg+"\n", args...)
+	os.Exit(3)
+}
+
+func main() {
+	bot := InitChatbot()
+
+	sub := bot.Kbc.ListenForNewTextMessages()
 	for {
+		bot.Mux.Lock()
 		msg, err := sub.Read()
+		bot.Mux.Unlock()
 
 		if err != nil {
 			fail("failed to read message: %s", err.Error())
 		}
 
-		response := ProcessMessage(client, msg)
-		if response != "" {
-			if err = kbc.SendMessage(msg.Conversation.Id, response); err != nil {
-				fail("error echo'ing message: %s", err.Error())
-			}
-		}
-
+		bot.Respond(msg)
 	}
+}
+
+func (bot *Chatbot) Respond(msg kbchat.SubscriptionMessage) {
+        bot.Mux.Lock()
+	response := ProcessMessage(bot.Client, msg)
+	if response != "" {	   	
+		fmt.Printf("Sending response %v", response)
+		if err := bot.Kbc.SendMessage(msg.Conversation.Id, response); err != nil {
+			fail("error echo'ing message: %s", err.Error())
+		}
+	}
+	bot.Mux.Unlock()
 }
 
 // Read the message and decide what to do with it.
@@ -55,7 +80,7 @@ func main() {
 // Handle channels
 func ProcessMessage(client *twitter.Client, msg kbchat.SubscriptionMessage) string {
 	text := msg.Message.Content.Text.Body
-	fmt.Printf("Handling %v...", text)
+	fmt.Printf("Handling %v...\n", text)
 
 	if strings.HasPrefix(text, "help") {
 		return "You can ask me things like 'kaiju' or 'cat'"
