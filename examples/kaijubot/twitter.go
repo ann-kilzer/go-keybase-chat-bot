@@ -50,7 +50,7 @@ func ReadRecentTweets(client *twitter.Client, username string) []twitter.Tweet {
 	params := twitter.UserTimelineParams{
 		ScreenName:     username,
 		ExcludeReplies: &excludeReplies,
-		Count:          50,
+		Count:          100,
 	}
 	tweets, _, err := client.Timelines.UserTimeline(&params)
 	if err != nil {
@@ -79,10 +79,7 @@ func ExtractVideo(tweet *twitter.Tweet) string {
 
 func ExtractPhoto(tweet *twitter.Tweet) string {
 	for _, ent := range tweet.ExtendedEntities.Media {
-		for _, p := range ent.MediaURL.Variants {
-			// just return the first one for now
-			return p.URL
-		}
+		return ent.MediaURL
 	}
 	return ""
 }

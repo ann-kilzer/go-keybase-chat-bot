@@ -8,6 +8,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/dghubble/go-twitter/twitter"
 	"github.com/keybase/go-keybase-chat-bot/kbchat"
 )
 
@@ -40,9 +41,10 @@ func main() {
 		}
 
 		response := ProcessMessage(client, msg)
-
-		if err = kbc.SendMessage(msg.Conversation.Id, response); err != nil {
-			fail("error echo'ing message: %s", err.Error())
+		if response != "" {
+			if err = kbc.SendMessage(msg.Conversation.Id, response); err != nil {
+				fail("error echo'ing message: %s", err.Error())
+			}
 		}
 
 	}
@@ -51,13 +53,18 @@ func main() {
 // Read the message and decide what to do with it.
 // Todo: Add user whitelist
 // Handle channels
-func ProcessMessage(client *twitter.Client, msg kbc.SubscriptionMessage) string {
-	text := msg.Message.Content.Text
+func ProcessMessage(client *twitter.Client, msg kbchat.SubscriptionMessage) string {
+	text := msg.Message.Content.Text.Body
+	fmt.Printf("Handling %v...", text)
+
+	if strings.HasPrefix(text, "help") {
+		return "You can ask me things like 'kaiju' or 'cat'"
+	}
 	if strings.HasPrefix(text, "kaiju") {
 		return GetTokugifsLink(client)
 	}
 	if strings.HasPrefix(text, "cat") {
 		return GetCatsuLink(client)
 	}
-	return "I do not understand your command."
+	return ""
 }
