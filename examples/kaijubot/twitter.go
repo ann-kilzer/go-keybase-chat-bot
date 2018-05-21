@@ -11,11 +11,15 @@ import (
 )
 
 // Be sure to call rand.Seed beforehand
-func GetTokugifsLink() string {
-	client := BuildClient()
+func GetTokugifsLink(client *twitter.Client) string {
 	tweet := GetRandomTweet(client, "tokugifs")
 	return ExtractVideo(tweet)
 
+}
+
+func GetCatsuLink(client *twitter.Client) string {
+	tweet := GetRandomTweet(client, "catsu")
+	return ExtractPhoto(tweet)
 }
 
 func BuildClient() *twitter.Client {
@@ -66,8 +70,18 @@ func GetRandomTweet(client *twitter.Client, username string) *twitter.Tweet {
 func ExtractVideo(tweet *twitter.Tweet) string {
 	for _, ent := range tweet.ExtendedEntities.Media {
 		for _, v := range ent.VideoInfo.Variants {
-			// just return the first one ofr now
+			// just return the first one for now
 			return v.URL
+		}
+	}
+	return ""
+}
+
+func ExtractPhoto(tweet *twitter.Tweet) string {
+	for _, ent := range tweet.ExtendedEntities.Media {
+		for _, p := range ent.MediaURL.Variants {
+			// just return the first one for now
+			return p.URL
 		}
 	}
 	return ""

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"math/rand"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/keybase/go-keybase-chat-bot/kbchat"
@@ -21,6 +22,7 @@ func main() {
 	var err error
 
 	rand.Seed(time.Now().Unix())
+	client := BuildClient()
 
 	flag.StringVar(&kbLoc, "keybase", "keybase", "the location of the Keybase app")
 	flag.Parse()
@@ -37,11 +39,25 @@ func main() {
 			fail("failed to read message: %s", err.Error())
 		}
 
-		link := GetTokugifsLink()
-		
-		if err = kbc.SendMessage(msg.Conversation.Id, link); err != nil {
+		response := ProcessMessage(client, msg)
+
+		if err = kbc.SendMessage(msg.Conversation.Id, response); err != nil {
 			fail("error echo'ing message: %s", err.Error())
 		}
 
 	}
+}
+
+// Read the message and decide what to do with it.
+// Todo: Add user whitelist
+// Handle channels
+func ProcessMessage(client *twitter.Client, msg kbc.SubscriptionMessage) string {
+	text := msg.Message.Content.Text
+	if strings.HasPrefix(text, "kaiju") {
+		return GetTokugifsLink(client)
+	}
+	if strings.HasPrefix(text, "cat") {
+		return GetCatsuLink(client)
+	}
+	return "I do not understand your command."
 }
