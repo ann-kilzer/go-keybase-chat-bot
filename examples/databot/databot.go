@@ -3,27 +3,26 @@ package main
 import (
 	"flag"
 	"fmt"
-	"math/rand"
 	"os"
 	"regexp"
 	"strings"
 	"sync"
-	"time"
 
 	"github.com/dghubble/go-twitter/twitter"
 	"github.com/keybase/go-keybase-chat-bot/kbchat"
 )
 
 type Chatbot struct {
-	Mux      sync.Mutex
-	Location string
-	Kbc      *kbchat.API
-	Client   *twitter.Client
+	Mux          sync.Mutex
+	Location     string
+	Kbc          *kbchat.API
+	Client       *twitter.Client
+	AllowedUsers []string // friends we accept messages from
 }
 
-// make him a real boy
+// make data a real boy
 func InitChatbot() *Chatbot {
-	rand.Seed(time.Now().Unix())
+	config := ReadConfig("config/config.toml")
 
 	var err error
 	var kbc *kbchat.API
@@ -36,9 +35,10 @@ func InitChatbot() *Chatbot {
 	}
 
 	return &Chatbot{
-		Location: kbLoc,
-		Kbc:      kbc,
-		Client:   BuildClient(),
+		Location:     kbLoc,
+		Kbc:          kbc,
+		Client:       BuildClient(&config.twitter),
+		AllowedUsers: config.whitelist.AllowedUsers,
 	}
 }
 

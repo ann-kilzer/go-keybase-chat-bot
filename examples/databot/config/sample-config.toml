@@ -1,0 +1,8 @@
+[Twitter]
+AccessToken = ""
+AccessSecret = ""
+ConsumerKey = ""
+ConsumerSecret = ""
+
+[Whitelist]
+allowed_users = ["catbacon"]

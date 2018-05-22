@@ -1,5 +1,5 @@
 #secret shit
-config/*
+config/config.toml
 
 
 .*

@@ -2,15 +2,13 @@ package main
 
 import (
 	"fmt"
-	"io/ioutil"
 	"math/rand"
-	"strings"
+	"time"
 
 	"github.com/dghubble/go-twitter/twitter"
 	"github.com/dghubble/oauth1"
 )
 
-// Be sure to call rand.Seed beforehand
 func GetTokugifsLink(client *twitter.Client) string {
 	tweet := GetRandomTweet(client, "tokugifs")
 	return ExtractVideo(tweet)
@@ -22,27 +20,16 @@ func GetCatsuLink(client *twitter.Client) string {
 	return ExtractPhoto(tweet)
 }
 
-func BuildClient() *twitter.Client {
-	accessToken := ReadSecret("config/accessToken.txt")
-	accessSecret := ReadSecret("config/accessSecret.txt")
-	consumerKey := ReadSecret("config/consumerKey.txt")
-	consumerSecret := ReadSecret("config/consumerSecret.txt")
+func BuildClient(ta *TwitterAuth) *twitter.Client {
+	// gotta make sure we get random cats
+	rand.Seed(time.Now().Unix())
 
-	config := oauth1.NewConfig(consumerKey, consumerSecret)
-	token := oauth1.NewToken(accessToken, accessSecret)
+	config := oauth1.NewConfig(ta.ConsumerKey, ta.ConsumerSecret)
+	token := oauth1.NewToken(ta.AccessToken, ta.AccessSecret)
 	httpClient := config.Client(oauth1.NoContext, token)
 
 	// twitter client
 	return twitter.NewClient(httpClient)
-}
-
-func ReadSecret(filename string) string {
-	text, err := ioutil.ReadFile(filename)
-	if err != nil {
-		fmt.Println(err.Error())
-	}
-	key := strings.TrimSpace(string(text))
-	return key
 }
 
 func ReadRecentTweets(client *twitter.Client, username string) []twitter.Tweet {
