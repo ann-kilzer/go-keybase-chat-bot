@@ -2,5 +2,10 @@
 config/config.toml
 
 
+
+#hidden folders
 .*
+# emacs cruft
 *~
+#binary
+databot

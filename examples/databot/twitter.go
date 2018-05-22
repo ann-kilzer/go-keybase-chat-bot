@@ -11,12 +11,18 @@ import (
 
 func GetTokugifsLink(client *twitter.Client) string {
 	tweet := GetRandomTweet(client, "tokugifs")
+	if tweet == nil {
+		return ""
+	}
 	return ExtractVideo(tweet)
 
 }
 
 func GetCatsuLink(client *twitter.Client) string {
 	tweet := GetRandomTweet(client, "catsu")
+	if tweet == nil {
+		return ""
+	}
 	return ExtractPhoto(tweet)
 }
 
@@ -50,7 +56,11 @@ func ReadRecentTweets(client *twitter.Client, username string) []twitter.Tweet {
 
 func GetRandomTweet(client *twitter.Client, username string) *twitter.Tweet {
 	tweets := ReadRecentTweets(client, username)
-	lucky := rand.Intn(len(tweets))
+	count := len(tweets)
+	if count == 0 {
+		return nil
+	}
+	lucky := rand.Intn(count)
 	return &tweets[lucky]
 }
 
