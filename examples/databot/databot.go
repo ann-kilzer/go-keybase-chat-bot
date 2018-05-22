@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"math/rand"
 	"os"
+	"regexp"
 	"strings"
 	"sync"
 	"time"
@@ -14,10 +15,10 @@ import (
 )
 
 type Chatbot struct {
-     Mux sync.Mutex
-     Location string
-     Kbc *kbchat.API
-     Client *twitter.Client
+	Mux      sync.Mutex
+	Location string
+	Kbc      *kbchat.API
+	Client   *twitter.Client
 }
 
 // make him a real boy
@@ -35,9 +36,9 @@ func InitChatbot() *Chatbot {
 	}
 
 	return &Chatbot{
-	       Location: kbLoc,
-	       Kbc: kbc,
-	       Client: BuildClient(),
+		Location: kbLoc,
+		Kbc:      kbc,
+		Client:   BuildClient(),
 	}
 }
 
@@ -64,9 +65,9 @@ func main() {
 }
 
 func (bot *Chatbot) Respond(msg kbchat.SubscriptionMessage) {
-        bot.Mux.Lock()
+	bot.Mux.Lock()
 	response := ProcessMessage(bot.Client, msg)
-	if response != "" {	   	
+	if response != "" {
 		fmt.Printf("Sending response %v", response)
 		if err := bot.Kbc.SendMessage(msg.Conversation.Id, response); err != nil {
 			fail("error echo'ing message: %s", err.Error())
@@ -79,9 +80,16 @@ func (bot *Chatbot) Respond(msg kbchat.SubscriptionMessage) {
 // Todo: Add user whitelist
 // Handle channels
 func ProcessMessage(client *twitter.Client, msg kbchat.SubscriptionMessage) string {
-	text := msg.Message.Content.Text.Body
+	text := strings.ToLower(msg.Message.Content.Text.Body)
+	username := msg.Message.Sender.Username
 	fmt.Printf("Handling %v...\n", text)
 
+	if isGreeting(text) {
+		return fmt.Sprintf("Hello %v!", username)
+	}
+	if strings.HasPrefix(text, "who are you") {
+		return "I am an android."
+	}
 	if strings.HasPrefix(text, "help") {
 		return "You can ask me things like 'kaiju' or 'cat'"
 	}
@@ -92,4 +100,10 @@ func ProcessMessage(client *twitter.Client, msg kbchat.SubscriptionMessage) stri
 		return GetCatsuLink(client)
 	}
 	return ""
+}
+
+func isGreeting(text string) bool {
+	lower := strings.ToLower(text)
+	re, _ := regexp.Compile("(hi[^a-z]+.*)|(^hi$)|(hello)|(konnichiwa)")
+	return re.MatchString(lower)
 }
