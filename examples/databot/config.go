@@ -1,43 +1,37 @@
 package main
 
 import (
-	"io/ioutil"
 	"log"
 
 	"github.com/BurntSushi/toml"
 )
 
+type TomlConfig struct {
+        Title     string
+	Twitter   TwitterAuth `toml:"twitter"`
+	Whitelist WhitelistConfig `toml:"whitelist"`
+}
+
 // Set up a developer account at twitter
 // https://apps.twitter.com/
 // And don't check your keys into prod :)
 type TwitterAuth struct {
-	AccessToken    string
-	AccessSecret   string
-	ConsumerKey    string
-	ConsumerSecret string
+	AccessToken    string `toml:"access_token"`
+	AccessSecret   string `toml:"access_secret"`
+	ConsumerKey    string `toml:"consumer_key"`
+	ConsumerSecret string `toml:"consumer_secret"`
 }
 
 // To avoid burning my AWS budget on what will
 // certainly be a popular bot, restrict who can
 // message our bot. CAT PICS AREN'T FREE
-type Whitelist struct {
+type WhitelistConfig struct {
 	AllowedUsers []string `toml:"allowed_users"`
 }
 
-type TomlConfig struct {
-	twitter   TwitterAuth `toml:"twitter"`
-	whitelist Whitelist
-}
-
 func ReadConfig(filename string) *TomlConfig {
-	bytes, err := ioutil.ReadFile(filename)
-	tomlData := string(bytes)
-	if err != nil {
-		log.Fatal(err)
-		return nil
-	}
 	var conf TomlConfig
-	if _, err := toml.Decode(tomlData, &conf); err != nil {
+	if _, err := toml.DecodeFile(filename, &conf); err != nil {
 		log.Fatal(err)
 		return nil
 	}

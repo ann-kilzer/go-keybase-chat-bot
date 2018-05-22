@@ -37,8 +37,8 @@ func InitChatbot() *Chatbot {
 	return &Chatbot{
 		Location:     kbLoc,
 		Kbc:          kbc,
-		Client:       BuildClient(&config.twitter),
-		AllowedUsers: config.whitelist.AllowedUsers,
+		Client:       BuildClient(&config.Twitter),
+		AllowedUsers: config.Whitelist.AllowedUsers,
 	}
 }
 
