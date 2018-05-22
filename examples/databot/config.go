@@ -7,8 +7,8 @@ import (
 )
 
 type TomlConfig struct {
-        Title     string
-	Twitter   TwitterAuth `toml:"twitter"`
+	Title     string
+	Twitter   TwitterAuth     `toml:"twitter"`
 	Whitelist WhitelistConfig `toml:"whitelist"`
 }
 
