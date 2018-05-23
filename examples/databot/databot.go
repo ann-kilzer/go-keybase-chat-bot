@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	"fmt"
+	"math/rand"
 	"os"
 	"regexp"
 	"strings"
@@ -13,11 +14,11 @@ import (
 )
 
 type Chatbot struct {
-	Mux          sync.Mutex
-	Location     string
-	Kbc          *kbchat.API
-	Client       *twitter.Client
-	AllowedUsers []string // friends we accept messages from
+	Mux      sync.Mutex
+	Location string
+	Kbc      *kbchat.API
+	Client   *twitter.Client
+	Friends  map[string]bool // friends we accept messages from
 }
 
 // make data a real boy
@@ -34,11 +35,17 @@ func InitChatbot() *Chatbot {
 		fail("Error creating API: %s", err.Error())
 	}
 
+	// build whitelist set
+	friends := make(map[string]bool)
+	for _, user := range config.Whitelist.AllowedUsers {
+		friends[user] = true
+	}
+
 	return &Chatbot{
-		Location:     kbLoc,
-		Kbc:          kbc,
-		Client:       BuildClient(&config.Twitter),
-		AllowedUsers: config.Whitelist.AllowedUsers,
+		Location: kbLoc,
+		Kbc:      kbc,
+		Client:   BuildClient(&config.Twitter),
+		Friends:  friends,
 	}
 }
 
@@ -66,9 +73,9 @@ func main() {
 
 func (bot *Chatbot) Respond(msg kbchat.SubscriptionMessage) {
 	bot.Mux.Lock()
-	response := ProcessMessage(bot.Client, msg)
+	response := ProcessMessage(bot, msg)
 	if response != "" {
-		fmt.Printf("Sending response %v", response)
+		fmt.Printf("Sending response %v\n", response)
 		if err := bot.Kbc.SendMessage(msg.Conversation.Id, response); err != nil {
 			fail("error echo'ing message: %s", err.Error())
 		}
@@ -79,16 +86,24 @@ func (bot *Chatbot) Respond(msg kbchat.SubscriptionMessage) {
 // Read the message and decide what to do with it.
 // Todo: Add user whitelist
 // Handle channels
-func ProcessMessage(client *twitter.Client, msg kbchat.SubscriptionMessage) string {
+func ProcessMessage(bot *Chatbot, msg kbchat.SubscriptionMessage) string {
+	client := bot.Client
 	text := strings.ToLower(msg.Message.Content.Text.Body)
 	username := msg.Message.Sender.Username
-	fmt.Printf("Handling %v...\n", text)
+	// check if the user is a friend
+	_, ok := bot.Friends[username]
+	if !ok {
+		return ""
+	}
+	fmt.Printf("Handling %v from %v\n", text, username)
 
 	if isGreeting(text) {
 		return fmt.Sprintf("Hello %v!", username)
 	}
 	if strings.HasPrefix(text, "who are you") {
-		return "I am an android."
+		return GetRandomResponse(
+			"I am an android.",
+			"My name is Lt. Commander Data.")
 	}
 	if strings.HasPrefix(text, "help") {
 		return "You can ask me things like 'kaiju' or 'cat'"
@@ -106,4 +121,12 @@ func isGreeting(text string) bool {
 	lower := strings.ToLower(text)
 	re, _ := regexp.Compile("(hi[^a-z]+.*)|(^hi$)|(hello)|(konnichiwa)")
 	return re.MatchString(lower)
+}
+
+func GetRandomResponse(responses ...string) string {
+	count := len(responses)
+	if count == 0 {
+		return ""
+	}
+	return responses[rand.Intn(count)]
 }
