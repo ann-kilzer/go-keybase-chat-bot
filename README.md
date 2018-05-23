@@ -2,7 +2,11 @@
 
 Script Keybase Chat in Go!
 
-This module is a side-project/work in progress and may change or have crashers, but feel free to play with it. As long as you're logged in as a Keybase user, you can use this module to script basic chat commands.
+
+This is my fork of keybase/go-keybase-chatbot.
+
+
+This module is a side-project/work in progress and may change or have crashes, but feel free to play with it. As long as you're logged in as a Keybase user, you can use this module to script basic chat commands.
 
 # Installation
 
