@@ -9,6 +9,8 @@ import (
 	"strings"
 	"sync"
 
+	conf "github.com/ann-kilzer/go-keybase-chat-bot/examples/databot/config"
+	"github.com/ann-kilzer/go-keybase-chat-bot/examples/databot/plugins"
 	"github.com/dghubble/go-twitter/twitter"
 	"github.com/keybase/go-keybase-chat-bot/kbchat"
 )
@@ -23,7 +25,7 @@ type Chatbot struct {
 
 // make data a real boy
 func InitChatbot() *Chatbot {
-	config := ReadConfig("config/config.toml")
+	config := conf.ReadConfig("config/config.toml")
 
 	var err error
 	var kbc *kbchat.API
@@ -44,7 +46,7 @@ func InitChatbot() *Chatbot {
 	return &Chatbot{
 		Location: kbLoc,
 		Kbc:      kbc,
-		Client:   BuildClient(&config.Twitter),
+		Client:   tweets.BuildClient(&config.Twitter),
 		Friends:  friends,
 	}
 }
@@ -71,6 +73,8 @@ func main() {
 	}
 }
 
+// the locking here is really overkill now that this is single threaded.
+// Still, something is up with the channels, because occasionally things deadlock
 func (bot *Chatbot) Respond(msg kbchat.SubscriptionMessage) {
 	bot.Mux.Lock()
 	response := ProcessMessage(bot, msg)
@@ -84,7 +88,6 @@ func (bot *Chatbot) Respond(msg kbchat.SubscriptionMessage) {
 }
 
 // Read the message and decide what to do with it.
-// Todo: Add user whitelist
 // Handle channels
 func ProcessMessage(bot *Chatbot, msg kbchat.SubscriptionMessage) string {
 	client := bot.Client
@@ -93,8 +96,10 @@ func ProcessMessage(bot *Chatbot, msg kbchat.SubscriptionMessage) string {
 	// check if the user is a friend
 	_, ok := bot.Friends[username]
 	if !ok {
+		fmt.Printf("Ignoring message %v from stranger %v", text, username)
 		return ""
 	}
+
 	fmt.Printf("Handling %v from %v\n", text, username)
 
 	if isGreeting(text) {
@@ -109,10 +114,13 @@ func ProcessMessage(bot *Chatbot, msg kbchat.SubscriptionMessage) string {
 		return "You can ask me things like 'kaiju' or 'cat'"
 	}
 	if strings.HasPrefix(text, "kaiju") {
-		return GetTokugifsLink(client)
+		return tweets.GetTokugifsLink(client)
 	}
 	if strings.HasPrefix(text, "cat") {
-		return GetCatsuLink(client)
+		return tweets.GetCatsuLink(client)
+	}
+	if strings.Contains(text, "bees") {
+
 	}
 	return ""
 }

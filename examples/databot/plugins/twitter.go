@@ -1,10 +1,11 @@
-package main
+package tweets
 
 import (
 	"fmt"
 	"math/rand"
 	"time"
 
+	"github.com/ann-kilzer/go-keybase-chat-bot/examples/databot/config"
 	"github.com/dghubble/go-twitter/twitter"
 	"github.com/dghubble/oauth1"
 )
@@ -26,7 +27,7 @@ func GetCatsuLink(client *twitter.Client) string {
 	return ExtractPhoto(tweet)
 }
 
-func BuildClient(ta *TwitterAuth) *twitter.Client {
+func BuildClient(ta *config.TwitterAuth) *twitter.Client {
 	// gotta make sure we get random cats
 	rand.Seed(time.Now().Unix())
 
