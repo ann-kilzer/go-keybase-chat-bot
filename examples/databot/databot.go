@@ -10,7 +10,8 @@ import (
 	"sync"
 
 	conf "github.com/ann-kilzer/go-keybase-chat-bot/examples/databot/config"
-	"github.com/ann-kilzer/go-keybase-chat-bot/examples/databot/plugins"
+	"github.com/ann-kilzer/go-keybase-chat-bot/examples/databot/plugins/memes"
+	"github.com/ann-kilzer/go-keybase-chat-bot/examples/databot/plugins/tweets"
 	"github.com/dghubble/go-twitter/twitter"
 	"github.com/keybase/go-keybase-chat-bot/kbchat"
 )
@@ -21,6 +22,7 @@ type Chatbot struct {
 	Kbc      *kbchat.API
 	Client   *twitter.Client
 	Friends  map[string]bool // friends we accept messages from
+	Memes    memes.Memes
 }
 
 // make data a real boy
@@ -48,6 +50,7 @@ func InitChatbot() *Chatbot {
 		Kbc:      kbc,
 		Client:   tweets.BuildClient(&config.Twitter),
 		Friends:  friends,
+		Memes:    memes.LoadMemes("memes.csv"),
 	}
 }
 
@@ -129,7 +132,8 @@ func ProcessMessage(bot *Chatbot, msg kbchat.SubscriptionMessage) string {
 			"https://2.bp.blogspot.com/-tgH9pAWFEoI/T5hJfjutCUI/AAAAAAAAB4g/PItsbZ92sOc/s640/No+Durians+Allowed.jpg",
 			"http://nanyangsigncrafts.com/workimg/0000475_450.jpg")
 	}
-	return ""
+	// automate it :)
+	return bot.Memes.RespondToMemes(text)
 }
 
 func isGreeting(text string) bool {
