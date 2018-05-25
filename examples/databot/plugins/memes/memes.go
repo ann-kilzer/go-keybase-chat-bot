@@ -39,6 +39,7 @@ func LoadMemes(filename string) Memes {
 		label := strings.TrimSpace(row[0])
 		url := strings.TrimSpace(row[1])
 		links, found := m.Links[label]
+		fmt.Printf("Loading %v, %v\n", label, url)
 		if found {
 			m.Links[label] = append(links, url)
 		} else {
