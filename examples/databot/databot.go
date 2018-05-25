@@ -50,7 +50,7 @@ func InitChatbot() *Chatbot {
 		Kbc:      kbc,
 		Client:   tweets.BuildClient(&config.Twitter),
 		Friends:  friends,
-		Memes:    memes.LoadMemes("memes.csv"),
+		Memes:    memes.LoadMemes("plugins/memes/memes.csv"),
 	}
 }
 

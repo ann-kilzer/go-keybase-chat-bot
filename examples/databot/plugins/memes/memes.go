@@ -3,7 +3,9 @@ package memes
 import (
 	"encoding/csv"
 	"fmt"
+	"io"
 	"math/rand"
+	"net/http"
 	"os"
 	"strings"
 )
@@ -14,10 +16,14 @@ import (
 // simply add multiple rows
 type Memes struct {
 	Links map[string][]string
+	Files map[string][]string
 }
 
 func LoadMemes(filename string) Memes {
-	m := Memes{Links: make(map[string][]string)}
+	m := Memes{
+		Links: make(map[string][]string),
+		Files: make(map[string][]string),
+	}
 	file, err := os.Open(filename)
 	defer file.Close()
 	if err != nil {
@@ -39,7 +45,72 @@ func LoadMemes(filename string) Memes {
 			m.Links[label] = []string{url}
 		}
 	}
+	m.DownloadAll()
+
 	return m
+}
+
+func (m *Memes) DownloadAll() error {
+	for label, links := range m.Links {
+		for count, url := range links {
+			// make a unique name
+			name, err := BuildFileName(url, label, count)
+			if err != nil {
+				fmt.Printf(err.Error())
+				continue
+			}
+			// download it
+			err = DownloadURL(name, url)
+			if err != nil {
+				fmt.Printf(err.Error())
+				continue
+			}
+			// Now keep track of where you put it
+			files, found := m.Files[label]
+			if found {
+				m.Files[label] = append(files, name)
+			} else {
+				m.Files[label] = []string{name}
+			}
+		}
+	}
+	return nil
+}
+
+const prefix = "downloads/"
+
+func BuildFileName(url, name string, count int) (string, error) {
+	suffix := ParseFileSuffix(url)
+	if suffix == "" {
+		return "", fmt.Errorf("Bad suffix for %v", url)
+	}
+	clean := strings.Replace(name, " ", "", -1)
+	return fmt.Sprintf("%v%v%d%v", prefix, clean, count, suffix), nil
+}
+
+// todo: don't download files we already have
+func DownloadURL(name, url string) error {
+	fmt.Printf("Downloading %v\n", name)
+	out, err := os.Create(name)
+	if err != nil {
+		return err
+	}
+	defer out.Close()
+
+	resp, err := http.Get(url)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+
+	_, err = io.Copy(out, resp.Body)
+	return err
+}
+
+func ParseFileSuffix(url string) string {
+	parts := strings.Split(url, ".")
+	last := len(parts) - 1
+	return "." + parts[last]
 }
 
 func (m *Memes) RespondToMemes(msg string) string {
