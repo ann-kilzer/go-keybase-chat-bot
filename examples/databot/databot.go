@@ -9,9 +9,9 @@ import (
 	"strings"
 	"sync"
 
-	conf "github.com/ann-kilzer/go-keybase-chat-bot/examples/databot/config"
 	"github.com/ann-kilzer/go-keybase-chat-bot/examples/databot/plugins/memes"
 	"github.com/ann-kilzer/go-keybase-chat-bot/examples/databot/plugins/tweets"
+	"github.com/ann-kilzer/go-keybase-chat-bot/examples/databot/toml"
 	"github.com/keybase/go-keybase-chat-bot/kbchat"
 )
 
@@ -26,7 +26,7 @@ type Chatbot struct {
 
 // make data a real boy
 func InitChatbot() *Chatbot {
-	config := conf.ReadConfig("config/config.toml")
+	config := toml.ReadConfig("config/config.toml")
 
 	var err error
 	var kbc *kbchat.API
@@ -48,8 +48,8 @@ func InitChatbot() *Chatbot {
 		Location: kbLoc,
 		Kbc:      kbc,
 		Friends:  friends,
-		Memes:    memes.LoadMemes("plugins/memes/memes.csv"),
-		Tweets:   tweets.NewTweetResponder(&config.Twitter),
+		Memes:    memes.LoadMemes("config/memes.csv"),
+		Tweets:   tweets.NewTweetResponder(&config.Twitter, "config/tweets.csv"),
 	}
 }
 

@@ -1,7 +1,7 @@
 #secret shit, don't share your config with the world
 config/config.toml
-plugins/memes/memes.csv
-
+config/memes.csv
+config/tweets.csv
 
 #hidden folders
 .*

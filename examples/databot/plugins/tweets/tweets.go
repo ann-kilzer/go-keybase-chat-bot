@@ -1,17 +1,27 @@
 package tweets
 
 import (
+	"encoding/csv"
 	"fmt"
 	"math/rand"
+	"os"
+	"strings"
 	"time"
 
-	"github.com/ann-kilzer/go-keybase-chat-bot/examples/databot/config"
+	"github.com/ann-kilzer/go-keybase-chat-bot/examples/databot/toml"
 	"github.com/dghubble/go-twitter/twitter"
 	"github.com/dghubble/oauth1"
 )
 
 type TweetResponder struct {
-	Client *twitter.Client
+	Client   *twitter.Client
+	Accounts []WatchedAccount
+}
+
+type WatchedAccount struct {
+	Keyword string
+	Account string
+	Type    string // is there enum?
 }
 
 func (t *TweetResponder) GetVideoLink(username string) string {
@@ -39,7 +49,7 @@ func (t *TweetResponder) GetText(username string) string {
 	return tweet.Text
 }
 
-func NewTweetResponder(ta *config.TwitterAuth) *TweetResponder {
+func NewTweetResponder(ta *toml.TwitterAuth, configFile string) *TweetResponder {
 	// gotta make sure we get random cats
 	rand.Seed(time.Now().Unix())
 
@@ -49,8 +59,35 @@ func NewTweetResponder(ta *config.TwitterAuth) *TweetResponder {
 
 	// twitter client
 	return &TweetResponder{
-		Client: twitter.NewClient(httpClient),
+		Client:   twitter.NewClient(httpClient),
+		Accounts: LoadConfig(configFile),
 	}
+}
+
+// We expect a three column csv:
+// keyword,username,type (one of "text","pic", or "video")
+func LoadConfig(filename string) []WatchedAccount {
+	a := []WatchedAccount{}
+	file, err := os.Open(filename)
+	defer file.Close()
+	if err != nil {
+		fmt.Println(err.Error())
+		return a
+	}
+
+	csv := csv.NewReader(file)
+	for row, err := csv.Read(); row != nil; row, err = csv.Read() {
+		if err != nil {
+			fmt.Println(err.Error())
+			return a
+		}
+		a = append(a, WatchedAccount{
+			Keyword: strings.TrimSpace(row[0]),
+			Account: strings.TrimSpace(row[1]),
+			Type:    strings.TrimSpace(row[2]),
+		})
+	}
+	return a
 }
 
 func (t *TweetResponder) ReadRecentTweets(username string) []twitter.Tweet {
