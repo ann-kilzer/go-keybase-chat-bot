@@ -10,8 +10,12 @@ import (
 	"github.com/dghubble/oauth1"
 )
 
-func GetTokugifsLink(client *twitter.Client) string {
-	tweet := GetRandomTweet(client, "tokugifs")
+type TweetResponder struct {
+	Client *twitter.Client
+}
+
+func (t *TweetResponder) GetTokugifsLink() string {
+	tweet := t.GetRandomTweet("tokugifs")
 	if tweet == nil {
 		return ""
 	}
@@ -19,15 +23,15 @@ func GetTokugifsLink(client *twitter.Client) string {
 
 }
 
-func GetCatsuLink(client *twitter.Client) string {
-	tweet := GetRandomTweet(client, "catsu")
+func (t *TweetResponder) GetCatsuLink() string {
+	tweet := t.GetRandomTweet("catsu")
 	if tweet == nil {
 		return ""
 	}
 	return ExtractPhoto(tweet)
 }
 
-func BuildClient(ta *config.TwitterAuth) *twitter.Client {
+func NewTweetResponder(ta *config.TwitterAuth) *TweetResponder {
 	// gotta make sure we get random cats
 	rand.Seed(time.Now().Unix())
 
@@ -36,17 +40,19 @@ func BuildClient(ta *config.TwitterAuth) *twitter.Client {
 	httpClient := config.Client(oauth1.NoContext, token)
 
 	// twitter client
-	return twitter.NewClient(httpClient)
+	return &TweetResponder{
+		Client: twitter.NewClient(httpClient),
+	}
 }
 
-func ReadRecentTweets(client *twitter.Client, username string) []twitter.Tweet {
+func (t *TweetResponder) ReadRecentTweets(username string) []twitter.Tweet {
 	excludeReplies := true
 	params := twitter.UserTimelineParams{
 		ScreenName:     username,
 		ExcludeReplies: &excludeReplies,
 		Count:          100,
 	}
-	tweets, _, err := client.Timelines.UserTimeline(&params)
+	tweets, _, err := t.Client.Timelines.UserTimeline(&params)
 	if err != nil {
 		fmt.Errorf(err.Error())
 		return []twitter.Tweet{}
@@ -55,8 +61,8 @@ func ReadRecentTweets(client *twitter.Client, username string) []twitter.Tweet {
 	return tweets
 }
 
-func GetRandomTweet(client *twitter.Client, username string) *twitter.Tweet {
-	tweets := ReadRecentTweets(client, username)
+func (t *TweetResponder) GetRandomTweet(username string) *twitter.Tweet {
+	tweets := t.ReadRecentTweets(username)
 	count := len(tweets)
 	if count == 0 {
 		return nil

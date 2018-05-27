@@ -12,7 +12,6 @@ import (
 	conf "github.com/ann-kilzer/go-keybase-chat-bot/examples/databot/config"
 	"github.com/ann-kilzer/go-keybase-chat-bot/examples/databot/plugins/memes"
 	"github.com/ann-kilzer/go-keybase-chat-bot/examples/databot/plugins/tweets"
-	"github.com/dghubble/go-twitter/twitter"
 	"github.com/keybase/go-keybase-chat-bot/kbchat"
 )
 
@@ -20,9 +19,9 @@ type Chatbot struct {
 	Mux      sync.Mutex
 	Location string
 	Kbc      *kbchat.API
-	Client   *twitter.Client
 	Friends  map[string]bool // friends we accept messages from
 	Memes    memes.Memes
+	Tweets   *tweets.TweetResponder
 }
 
 // make data a real boy
@@ -48,9 +47,9 @@ func InitChatbot() *Chatbot {
 	return &Chatbot{
 		Location: kbLoc,
 		Kbc:      kbc,
-		Client:   tweets.BuildClient(&config.Twitter),
 		Friends:  friends,
 		Memes:    memes.LoadMemes("plugins/memes/memes.csv"),
+		Tweets:   tweets.NewTweetResponder(&config.Twitter),
 	}
 }
 
@@ -78,6 +77,7 @@ func main() {
 
 // the locking here is really overkill now that this is single threaded.
 // Still, something is up with the channels, because occasionally things deadlock
+// augh this is so wrong it hurts
 func (bot *Chatbot) Respond(msg kbchat.SubscriptionMessage) {
 	bot.Mux.Lock()
 	response := ProcessMessage(bot, msg)
@@ -91,9 +91,7 @@ func (bot *Chatbot) Respond(msg kbchat.SubscriptionMessage) {
 }
 
 // Read the message and decide what to do with it.
-// Handle channels
 func ProcessMessage(bot *Chatbot, msg kbchat.SubscriptionMessage) string {
-	client := bot.Client
 	text := strings.ToLower(msg.Message.Content.Text.Body)
 	username := msg.Message.Sender.Username
 	// check if the user is a friend
@@ -117,10 +115,10 @@ func ProcessMessage(bot *Chatbot, msg kbchat.SubscriptionMessage) string {
 		return "You can ask me things like 'kaiju' or 'cat'"
 	}
 	if strings.HasPrefix(text, "kaiju") {
-		return tweets.GetTokugifsLink(client)
+		return bot.Tweets.GetTokugifsLink()
 	}
 	if strings.HasPrefix(text, "cat") {
-		return tweets.GetCatsuLink(client)
+		return bot.Tweets.GetCatsuLink()
 	}
 	// todo: set up a text config for some of these memes
 	if strings.Contains(text, "bees") {
