@@ -10,11 +10,20 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
+	"path/filepath"
 	"time"
 
 	"github.com/BurntSushi/toml"
 	"github.com/keybase/go-keybase-chat-bot/kbchat"
 )
+
+func main() {
+	qb := InitQueueBot("queuebot.toml")
+	for {
+		HandleNewMessges(qb)
+		time.Sleep(time.Minute)
+	}
+}
 
 type QueueBot struct {
 	Kbc    *kbchat.API
@@ -44,6 +53,13 @@ func InitQueueBot(filename string) *QueueBot {
 	}
 }
 
+func (qb *QueueBot) Send(contents string) error {
+	if err := qb.Kbc.SendMessage(qb.Config.ConvoID, contents); err != nil {
+		return err
+	}
+	return nil
+}
+
 func ReadConfig(filename string) *TomlConfig {
 	var conf TomlConfig
 	if _, err := toml.DecodeFile(filename, &conf); err != nil {
@@ -58,34 +74,47 @@ func fail(msg string, args ...interface{}) {
 	os.Exit(3)
 }
 
-func main() {
-	qb := InitQueueBot("queuebot.toml")
-
-	for {
-		HandleNewMessges(qb)
-		time.Sleep(time.Minute)
-	}
+// hail mary, try to alert the channel
+func failWithAlert(qb *QueueBot, msg string, args ...interface{}) {
+	fmt.Fprintf(os.Stderr, msg+"\n", args...)
+	qb.Send("Bot down! " + msg)
+	os.Exit(3)
 }
 
 func HandleNewMessges(qb *QueueBot) {
-	// list directory contents
-	messages := MockListDir(qb.Config.QueueDir)
-	for _, msg := range messages {
-		fmt.Printf("Handling message %v\n", msg)
-		SendMessage(msg, qb)
+	dir := qb.Config.QueueDir
+	msgFiles, err := ListDir(dir)
+	if err != nil {
+		failWithAlert(qb, "unable to read directory "+dir, err.Error())
+	}
+	for _, mf := range msgFiles {
+		fmt.Printf("Handling message %v\n", mf)
+		fullpath := filepath.Join(dir, mf)
+		SendMessage(fullpath, qb)
 	}
 
 }
 
-// todo: replace this with something that does ls when I get wifi and can read godocs
-func MockListDir(dir string) []string {
-	return []string{"a", "b", "c"}
+func ListDir(dir string) ([]string, error) {
+	f, err := os.Open(dir)
+	if err != nil {
+		return []string{}, err
+	}
+	defer f.Close()
+	names, err := f.Readdirnames(-1)
+	if err != nil {
+		return []string{}, err
+	}
+	fmt.Print(names)
+	return names, nil
 }
 
+// SendMessage reads the contents at filepath and sends it to the
+// Queuebot's keybase channel
 func SendMessage(filename string, qb *QueueBot) {
 	contents, err := ReadMessage(filename)
 	if err != nil {
-		fail("unable to read message", err.Error())
+		failWithAlert(qb, "unable to read message", err.Error())
 	}
 
 	if contents == "" {
@@ -95,18 +124,18 @@ func SendMessage(filename string, qb *QueueBot) {
 
 	// test logging
 	fmt.Printf("sending %v\n", contents)
-	if err = qb.Kbc.SendMessage(qb.Config.ConvoID, contents); err != nil {
-		fail("error echo'ing message: %s", err.Error())
+	err = qb.Send(contents)
+	if err != nil {
+		failWithAlert(qb, "error sending message: %s", err.Error())
 	}
 
 	// clean up your mess
 	err = os.Remove(filename)
 	if err != nil {
-		fail("Unable to clean up file %v", err.Error())
+		failWithAlert(qb, "Unable to clean up file %v", err.Error())
 	}
 }
 
-// todo: review this when you can internet
 func ReadMessage(filename string) (string, error) {
 	file, err := os.Open(filename)
 	if err != nil {
