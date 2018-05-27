@@ -5,7 +5,10 @@ plugins/memes/memes.csv
 
 #hidden folders
 .*
+downloads
+
 # emacs cruft
 *~
+
 #binary
 databot
