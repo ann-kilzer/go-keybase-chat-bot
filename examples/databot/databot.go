@@ -114,23 +114,10 @@ func ProcessMessage(bot *Chatbot, msg kbchat.SubscriptionMessage) string {
 	if strings.HasPrefix(text, "help") {
 		return "You can ask me things like 'kaiju' or 'cat'"
 	}
-	if strings.HasPrefix(text, "kaiju") {
-		return bot.Tweets.GetVideoLink("tokugifs")
+	if resp := bot.Tweets.RespondToKeywords(text); resp != "" {
+		return resp
 	}
-	if strings.HasPrefix(text, "cat") {
-		return bot.Tweets.GetPictureLink("catsu")
-	}
-	// todo: set up a text config for some of these memes
-	if strings.Contains(text, "bees") {
-		return "https://media.giphy.com/media/8Jww0ZIXMZoXu/giphy.gif"
-	}
-	if strings.Contains(text, "durian") {
-		return GetRandomResponse(
-			"https://www.changesinlongitude.com/wp-content/uploads/2012/06/Sign-no-durians-550x521.jpg",
-			"https://2.bp.blogspot.com/-tgH9pAWFEoI/T5hJfjutCUI/AAAAAAAAB4g/PItsbZ92sOc/s640/No+Durians+Allowed.jpg",
-			"http://nanyangsigncrafts.com/workimg/0000475_450.jpg")
-	}
-	// automate it :)
+
 	return bot.Memes.RespondToMemes(text)
 }
 

@@ -24,29 +24,23 @@ type WatchedAccount struct {
 	Type    string // is there enum?
 }
 
-func (t *TweetResponder) GetVideoLink(username string) string {
-	tweet := t.GetRandomTweet(username)
-	if tweet == nil {
-		return ""
+func (t *TweetResponder) RespondToKeywords(text string) string {
+	for _, acc := range t.Accounts {
+		if strings.HasPrefix(text, acc.Keyword) {
+			tweet := t.GetRandomTweet(acc.Account)
+			if tweet == nil {
+				return ""
+			}
+			if acc.Type == "pic" {
+				return ExtractPhoto(tweet)
+			}
+			if acc.Type == "video" {
+				return ExtractVideo(tweet)
+			}
+			return tweet.Text
+		}
 	}
-	return ExtractVideo(tweet)
-
-}
-
-func (t *TweetResponder) GetPictureLink(username string) string {
-	tweet := t.GetRandomTweet(username)
-	if tweet == nil {
-		return ""
-	}
-	return ExtractPhoto(tweet)
-}
-
-func (t *TweetResponder) GetText(username string) string {
-	tweet := t.GetRandomTweet(username)
-	if tweet == nil {
-		return ""
-	}
-	return tweet.Text
+	return ""
 }
 
 func NewTweetResponder(ta *toml.TwitterAuth, configFile string) *TweetResponder {
