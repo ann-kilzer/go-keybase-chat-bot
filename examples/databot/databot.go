@@ -115,10 +115,10 @@ func ProcessMessage(bot *Chatbot, msg kbchat.SubscriptionMessage) string {
 		return "You can ask me things like 'kaiju' or 'cat'"
 	}
 	if strings.HasPrefix(text, "kaiju") {
-		return bot.Tweets.GetTokugifsLink()
+		return bot.Tweets.GetVideoLink("tokugifs")
 	}
 	if strings.HasPrefix(text, "cat") {
-		return bot.Tweets.GetCatsuLink()
+		return bot.Tweets.GetPictureLink("catsu")
 	}
 	// todo: set up a text config for some of these memes
 	if strings.Contains(text, "bees") {

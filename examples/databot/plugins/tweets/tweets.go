@@ -14,8 +14,8 @@ type TweetResponder struct {
 	Client *twitter.Client
 }
 
-func (t *TweetResponder) GetTokugifsLink() string {
-	tweet := t.GetRandomTweet("tokugifs")
+func (t *TweetResponder) GetVideoLink(username string) string {
+	tweet := t.GetRandomTweet(username)
 	if tweet == nil {
 		return ""
 	}
@@ -23,12 +23,20 @@ func (t *TweetResponder) GetTokugifsLink() string {
 
 }
 
-func (t *TweetResponder) GetCatsuLink() string {
-	tweet := t.GetRandomTweet("catsu")
+func (t *TweetResponder) GetPictureLink(username string) string {
+	tweet := t.GetRandomTweet(username)
 	if tweet == nil {
 		return ""
 	}
 	return ExtractPhoto(tweet)
+}
+
+func (t *TweetResponder) GetText(username string) string {
+	tweet := t.GetRandomTweet(username)
+	if tweet == nil {
+		return ""
+	}
+	return tweet.Text
 }
 
 func NewTweetResponder(ta *config.TwitterAuth) *TweetResponder {
