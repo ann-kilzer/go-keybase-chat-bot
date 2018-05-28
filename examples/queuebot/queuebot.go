@@ -31,7 +31,8 @@ type QueueBot struct {
 }
 
 type TomlConfig struct {
-	ConvoID  string `toml:"conversation_id"`
+	TeamName string `toml:"team_name"`
+	Channel  string `toml:"channel"`
 	QueueDir string `toml:"queue_directory"`
 }
 
@@ -54,7 +55,7 @@ func InitQueueBot(filename string) *QueueBot {
 }
 
 func (qb *QueueBot) Send(contents string) error {
-	if err := qb.Kbc.SendMessage(qb.Config.ConvoID, contents); err != nil {
+	if err := qb.Kbc.SendMessageByTeamName(qb.Config.TeamName, contents, &qb.Config.Channel); err != nil {
 		return err
 	}
 	return nil
@@ -105,7 +106,6 @@ func ListDir(dir string) ([]string, error) {
 	if err != nil {
 		return []string{}, err
 	}
-	fmt.Print(names)
 	return names, nil
 }
 
