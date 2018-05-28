@@ -18,7 +18,14 @@ import (
 )
 
 func main() {
-	qb := InitQueueBot("queuebot.toml")
+	var configfile string
+	if len(os.Args) >= 2 {
+		configfile = os.Args[1]
+	} else {
+		configfile = "queuebot.toml"
+	}
+
+	qb := InitQueueBot(configfile)
 	for {
 		HandleNewMessges(qb)
 		time.Sleep(time.Minute)
@@ -64,7 +71,7 @@ func (qb *QueueBot) Send(contents string) error {
 func ReadConfig(filename string) *TomlConfig {
 	var conf TomlConfig
 	if _, err := toml.DecodeFile(filename, &conf); err != nil {
-		fail("Unable to read config, RIP")
+		fail("Unable to read config %v, RIP", filename)
 		return nil
 	}
 	return &conf
