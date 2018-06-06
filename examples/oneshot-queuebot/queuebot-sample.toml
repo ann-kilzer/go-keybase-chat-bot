@@ -1,0 +1,3 @@
+team_name = "coolgroup"
+channel = "cats"
+queue_directory = "/var/queuebot"
