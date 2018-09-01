@@ -11,6 +11,7 @@ import (
 
 	"github.com/ann-kilzer/go-keybase-chat-bot/examples/databot/plugins/memes"
 	"github.com/ann-kilzer/go-keybase-chat-bot/examples/databot/plugins/tweets"
+	"github.com/ann-kilzer/go-keybase-chat-bot/examples/databot/plugins/dresscode"
 	"github.com/ann-kilzer/go-keybase-chat-bot/examples/databot/toml"
 	"github.com/ann-kilzer/go-keybase-chat-bot/kbchat"
 )
@@ -22,6 +23,7 @@ type Chatbot struct {
 	Friends  map[string]bool // friends we accept messages from
 	Memes    memes.Memes
 	Tweets   *tweets.TweetResponder
+	Dresscode dresscode.Dresscodes
 }
 
 // make data a real boy
@@ -50,6 +52,7 @@ func InitChatbot() *Chatbot {
 		Friends:  friends,
 		Memes:    memes.LoadMemes("config/memes.csv"),
 		Tweets:   tweets.NewTweetResponder(&config.Twitter, "config/tweets.csv"),
+		Dresscode: dresscode.LoadDresscodes("config/dresscodes.csv"),
 	}
 }
 
@@ -113,6 +116,9 @@ func ProcessMessage(bot *Chatbot, msg kbchat.SubscriptionMessage) string {
 	}
 	if strings.HasPrefix(text, "help") {
 		return "You can ask me things like 'kaiju' or 'cat'"
+	}
+	if strings.HasPrefix(text, "dresscode") {
+		return bot.Dresscode.RespondToDresscode(text)
 	}
 	if resp := bot.Tweets.RespondToKeywords(text); resp != "" {
 		return resp
