@@ -12,3 +12,6 @@ downloads
 
 #binary
 databot
+
+#dep
+vendor/*

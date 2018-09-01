@@ -12,7 +12,7 @@ import (
 	"github.com/ann-kilzer/go-keybase-chat-bot/examples/databot/plugins/memes"
 	"github.com/ann-kilzer/go-keybase-chat-bot/examples/databot/plugins/tweets"
 	"github.com/ann-kilzer/go-keybase-chat-bot/examples/databot/toml"
-	"github.com/keybase/go-keybase-chat-bot/kbchat"
+	"github.com/ann-kilzer/go-keybase-chat-bot/kbchat"
 )
 
 type Chatbot struct {
