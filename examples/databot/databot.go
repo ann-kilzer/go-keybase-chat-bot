@@ -117,7 +117,7 @@ func ProcessMessage(bot *Chatbot, msg kbchat.SubscriptionMessage) string {
 	if strings.HasPrefix(text, "help") {
 		return "You can ask me things like 'kaiju' or 'cat'"
 	}
-	if strings.HasPrefix(text, "dresscode") {
+	if strings.Contains(text, "dresscode") {
 		return bot.Dresscode.RespondToDresscode(text)
 	}
 	if resp := bot.Tweets.RespondToKeywords(text); resp != "" {
