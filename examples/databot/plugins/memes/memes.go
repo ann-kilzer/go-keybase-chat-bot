@@ -60,11 +60,16 @@ func (m *Memes) DownloadAll() error {
 				fmt.Printf(err.Error())
 				continue
 			}
-			// download it
-			err = DownloadURL(name, url)
-			if err != nil {
-				fmt.Printf(err.Error())
-				continue
+			// if it's not there
+			if _, err := os.Stat(name); os.IsNotExist(err) {			
+				// download it
+				err = DownloadURL(name, url)
+				if err != nil {
+					fmt.Printf(err.Error())
+					continue
+				}
+			} else {
+				fmt.Printf("Found %v\n", name)
 			}
 			// Now keep track of where you put it
 			files, found := m.Files[label]
@@ -89,7 +94,6 @@ func BuildFileName(url, name string, count int) (string, error) {
 	return fmt.Sprintf("%v%v%d%v", prefix, clean, count, suffix), nil
 }
 
-// todo: don't download files we already have
 func DownloadURL(name, url string) error {
 	fmt.Printf("Downloading %v\n", name)
 	out, err := os.Create(name)

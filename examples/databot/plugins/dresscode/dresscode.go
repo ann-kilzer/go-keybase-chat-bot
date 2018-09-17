@@ -31,6 +31,7 @@ func LoadDresscodes(filename string) Dresscodes {
 		style := strings.TrimSpace(row[0])
 		d.Styles = append(d.Styles, style)
 	}
+	fmt.Printf("Loaded %d dresscodes\n", len(d.Styles)) 
 	return d
 }
 
