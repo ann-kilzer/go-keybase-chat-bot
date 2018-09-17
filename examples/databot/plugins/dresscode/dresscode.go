@@ -37,7 +37,6 @@ func LoadDresscodes(filename string) Dresscodes {
 func (d *Dresscodes) RespondToDresscode(msg string) string {
 	// what day is it?
 	datestr := time.Now().Format("Mon Jan 2 2006")
-	fmt.Println(datestr)
 	// compute the hash
 	h := hash(datestr)
 	// modulo t
