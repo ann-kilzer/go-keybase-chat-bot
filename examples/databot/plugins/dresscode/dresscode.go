@@ -9,12 +9,16 @@ import (
 	"hash/fnv"
 )
 
+const timezone = "Asia/Tokyo"
+
+var location *time.Location
 
 type Dresscodes struct {
 	Styles []string
 }
 
 func LoadDresscodes(filename string) Dresscodes {
+	location, _ = time.LoadLocation(timezone)
 	d := Dresscodes{Styles:[]string{}}
 	file, err := os.Open(filename)
 	defer file.Close()
@@ -37,7 +41,7 @@ func LoadDresscodes(filename string) Dresscodes {
 
 func (d *Dresscodes) RespondToDresscode(msg string) string {
 	// what day is it?
-	datestr := time.Now().Format("Mon Jan 2 2006")
+	datestr := time.Now().In(location).Format("Mon Jan 2 2006")
 	// compute the hash
 	h := hash(datestr)
 	// modulo t
