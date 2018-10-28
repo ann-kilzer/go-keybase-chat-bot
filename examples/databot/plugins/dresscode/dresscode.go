@@ -42,6 +42,9 @@ func LoadDresscodes(filename string) Dresscodes {
 func (d *Dresscodes) RespondToDresscode(msg string) string {
 	// what day is it?
 	datestr := time.Now().In(location).Format("Mon Jan 2 2006")
+	if strings.Contains(datestr, "Oct 31") {
+		return "Today's dress code is HALLOWEEN!!!!"
+	}
 	// compute the hash
 	h := hash(datestr)
 	// modulo t
