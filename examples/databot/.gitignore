@@ -1,7 +1,9 @@
 #secret shit, don't share your config with the world
 config/config.toml
+config/keybase.env
 config/memes.csv
 config/tweets.csv
+config/dresscodes.csv
 
 #hidden folders
 .*
