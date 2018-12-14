@@ -2,4 +2,6 @@
 
 cd "$(dirname "$0")"
 
-docker stop databot && docker rm databot
+[[ -w /var/run/docker.sock ]] && sudo="" || sudo="sudo"
+
+exec sh -c "${sudo} docker stop databot && ${sudo} docker rm databot"

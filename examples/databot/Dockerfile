@@ -12,10 +12,10 @@ RUN apt-get update && apt-get install -y curl && \
     curl -o /tmp/keybase.deb https://prerelease.keybase.io/keybase_amd64.deb && \
     dpkg -i /tmp/keybase.deb; apt-get install -f -y && \
     rm /tmp/keybase.deb && apt-get remove -y --purge curl
-RUN adduser --system --home /databot --uid 200 databot
+RUN addgroup --system --gid 200 databot && adduser --system --home /databot --uid 200  --gid 200 databot
 USER databot
 WORKDIR /databot
-COPY --from=builder /tmp/databot .
-COPY downloads downloads
-VOLUME ["/databot/config"]
+RUN mkdir -p downloads
+COPY --chown=databot --from=builder /tmp/databot .
+VOLUME ["/databot/config", "/databot/downloads"]
 CMD ["sh", "-c", "/usr/bin/keybase oneshot && /databot/databot"]

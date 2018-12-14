@@ -2,4 +2,6 @@
 
 cd "$(dirname "$0")"
 
-docker build -t databot .
+[[ -w /var/run/docker.sock ]] && sudo="" || sudo="sudo"
+
+exec ${sudo} docker build -t databot .
