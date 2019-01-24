@@ -72,9 +72,9 @@ func main() {
 
 		if err != nil {
 			fail("failed to read message: %s", err.Error())
+		} else { 
+			bot.Respond(msg)
 		}
-
-		bot.Respond(msg)
 	}
 }
 
